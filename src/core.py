@@ -99,7 +99,7 @@ class State:
 
     def get_valid_moves(self):
         # return list of valid moves, taking into account self.next_move
-        player, piece_to_move = self.next_turn
+        player, piece_to_move = self.next_move
         colored_pieces = self.state[player]
 
         # do a flat map over everything we're allowed to move
@@ -133,7 +133,7 @@ class State:
             # we do this cursed thing because we want to filter AFTER mapping,
             # which normal python comprehensions don't do
             legal_moves = (
-                (final_x, final_y)
+                (player, moving_piece, final_x, final_y)
                 for (dir_x, dir_y) in [(-1, 0), (1, 0), (0, -1), (0, 1)]
                 if (final_x := moving_piece.x + dir_x) in x_range
                 and (final_y := moving_piece.y + dir_y) in y_range
