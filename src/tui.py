@@ -22,10 +22,13 @@ while response not in ["win_white", "win_black", "already_over"]:
     print("Input your move request.")
     in_player = input('player ("black" or "white"): ')
     in_shape = input('shape (e.g. "wave"): ')
-    in_x = input('x (e.g. 2): ')
-    in_y = input('y (e.g. 1): ')
+    in_x = input("x (e.g. 2): ")
+    in_y = input("y (e.g. 1): ")
 
-    full_request = (in_player, in_shape, int(in_x), int(in_y))
+    try:
+        full_request = (in_player, in_shape, int(in_x), int(in_y))
+    except ValueError:
+        print('ERROR: Invalid input type (e.g. "wave" for x)')
     print(f"Your move: {full_request}")
     response, extra_info = game.try_move(full_request)
 
