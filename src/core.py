@@ -126,7 +126,7 @@ class State:
                 continue
 
             # now we can move, so find all in-bounds moves and extend ret with them
-            x_range = range(4)
+            x_range = range(5)
             # have to only let players move off the board on the other side
             range_offset = 0 if player == "white" else -1
             y_range = range(0 + range_offset, 8 + range_offset)
