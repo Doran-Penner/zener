@@ -1,0 +1,5 @@
+.envrc
+venv/
+.venv/
+.direnv/
+.ruff-cache/
