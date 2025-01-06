@@ -7,10 +7,10 @@ make for Paideia 2025.
 
 The code is all in the `src/` directory. The core gameplay, including move
 validation, checking who wins, and so on is stored in `core.py`. To actually
-play the game, run the (upcoming) file `python3 tui.py` to play a simple
-game loop in the terminal with user input, and in the future there will be a
-graphical interface as well. There are no dependencies; you should just be able
-to clone this repository (or copy the files directly) and run it.
+play the game, run the (upcoming) file `python3 tui.py` to play a simple game
+loop in the terminal with user input, and in the future there will be a visual
+interface as well. There are no dependencies (except for python3); you should
+just be able to clone this repository (or copy the files directly) and run it.
 
 ## Contributing
 

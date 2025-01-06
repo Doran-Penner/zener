@@ -3,3 +3,4 @@ venv/
 .venv/
 .direnv/
 .ruff-cache/
+__pycache__/
