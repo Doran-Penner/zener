@@ -82,6 +82,7 @@ class State:
         # specifies next valid move; first element is who goes next,
         # second is what piece they need to move as a string (or None)
         self.next_move = ("white", None)
+        self.prev_piece = None  # so we can't double-move
         self.winner = None
         # small convenience function
         self.other_team = lambda color: "black" if color == "white" else "white"
@@ -110,6 +111,9 @@ class State:
 
         ret = []
         for moving_piece in pieces:
+            # make sure we can't double-move
+            if moving_piece.shape == self.prev_piece:
+                continue
             # find out if piece is under something
             all_pieces = chain.from_iterable(
                 map(lambda y: y.values(), self.state.values())
@@ -133,7 +137,7 @@ class State:
             # we do this cursed thing because we want to filter AFTER mapping,
             # which normal python comprehensions don't do
             legal_moves = (
-                (player, moving_piece, final_x, final_y)
+                (player, moving_piece.shape, final_x, final_y)
                 for (dir_x, dir_y) in [(-1, 0), (1, 0), (0, -1), (0, 1)]
                 if (final_x := moving_piece.x + dir_x) in x_range
                 and (final_y := moving_piece.y + dir_y) in y_range
@@ -182,6 +186,7 @@ class State:
             )
 
         # increment move tracker
+        self.prev_piece = self.next_move[1]
         if self.next_move[1] is None:
             self.next_move = (self.other_team(player), shape)
         else:
@@ -204,5 +209,5 @@ class State:
     # simple logging wrapper
     def try_move(self, move):
         out = self._try_move(move)
-        self.logged_moves.append(move, out)
+        self.logged_moves.append((move, out))
         return out
