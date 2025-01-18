@@ -138,17 +138,8 @@ class State:
                 self.board[bp_y][bp_x] = str(piece.icon)
             else:
                 print("dealing with height fighting")
-                max_height = piece.height
-                for check in self.state["white"].values():
-                    if (check.y, check.x) == board_pos:
-                        if check.height > piece.height:
-                            self.board[bp_y][bp_x] = str(check.icon)
-                            max_height = piece.height
-                for check in self.state["black"].values():
-                    if (check.y, check.x) == board_pos:
-                        if check.height > piece.height:
-                            self.board[bp_y][bp_x] = str(check.icon)
-                            max_height = piece.height
+                highest = max(filter(lambda piece: (piece.y, piece.x) == board_pos, chain(self.state['white'].values(), self.state['black'].values())), key=lambda piece: piece.height)
+                self.board[bp_y][bp_x] = str(highest.icon)
 
         for piece in self.state["black"].values():
             print(piece)
@@ -160,17 +151,8 @@ class State:
                 self.board[bp_y][bp_x] = str(piece.icon)
             else:
                 print("dealing with height fighting")
-                max_height = piece.height
-                for check in self.state["black"].values():
-                    if (check.y, check.x) == board_pos:
-                        if check.height > piece.height:
-                            self.board[bp_y][bp_x] = str(check.icon)
-                            max_height = piece.height
-                for check in self.state["white"].values():
-                    if (check.y, check.x) == board_pos:
-                        if check.height > piece.height:
-                            self.board[bp_y][bp_x] = str(check.icon)
-                            max_height = piece.height
+                highest = max(filter(lambda piece: (piece.y, piece.x) == board_pos, chain(self.state['white'].values(), self.state['black'].values())), key=lambda piece: piece.height)
+                self.board[bp_y][bp_x] = str(highest.icon)
 
     def draw_board(self):
         # draw the board onto the terminal
