@@ -1,7 +1,8 @@
 from copy import deepcopy
 from functools import reduce
 from itertools import chain
-
+from termcolor import colored
+import numpy as np
 """
 We store state by player, then piece, then position & other data.
 The piece is an object, everything else is a dict.
@@ -63,12 +64,27 @@ Stuff they need to know!
 
 
 SHAPES = ["circle", "plus", "wave", "square", "star"]
+ICONS = ["o", "+", "~", "▣", "*"]
+BLANK = u'\u25A1'
+TOP_TRI = u'\u25B3'
+BOT_TRI = u'\u25BC'
 WIDTH = 5
 HEIGHT = 7
 
+BLANK_BOARD = np.array(
+            [ 
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+                [BLANK,BLANK,BLANK,BLANK,BLANK],
+            ], dtype='<U6')
+
 
 class Piece:
-    def __init__(self, shape, x_pos, y_pos, height):
+    def __init__(self, shape, icon, x_pos, y_pos, height):
         assert shape in SHAPES, f"Invalid shape name: {shape}"
         self.x = x_pos
         self.y = y_pos
@@ -76,6 +92,9 @@ class Piece:
         # note: height starts at 1, because it's easier to
         # think of an empty square as having height 0
         self.height = height
+
+        self.icon = icon
+        # Added icon for graphical purpose
 
     def __repr__(self):
         return f"<{self.shape} at ({self.x}, {self.y}) with height {self.height}>"
@@ -85,10 +104,10 @@ class State:
     def __init__(self):
         # initialize to starting board
         white_pieces = {
-            shape: Piece(shape, i, 0, 1) for (i, shape) in enumerate(SHAPES)
+            shape: Piece(shape, ICONS[i], i, 0, 1) for (i, shape) in enumerate(SHAPES)
         }
         black_pieces = {
-            shape: Piece(shape, (WIDTH - 1) - i, HEIGHT - 1, 1)
+            shape: Piece(shape, ICONS[i], (WIDTH - 1) - i, HEIGHT - 1, 1)
             for (i, shape) in enumerate(SHAPES)
         }
         self.state = {"white": white_pieces, "black": black_pieces}
@@ -101,6 +120,70 @@ class State:
         self.other_team = lambda color: "black" if color == "white" else "white"
         # old logger, we use stdout in new api
         self.logged_moves = []
+
+        self.board = deepcopy(BLANK_BOARD)
+
+    def update_board(self):
+
+        self.board = deepcopy(BLANK_BOARD)
+
+        # This isnt pretty, but it is something
+        # It will generate a gameboard, right now i just refresh the board every time
+        # TODO: Make more elegant, and integrate with the game history better, this is a rough n' tumble version atm
+        for piece in self.state["white"].values():
+            print(piece)
+            board_pos = (piece.y, piece.x)
+            if self.board[board_pos] == piece.icon:
+                continue
+            elif self.board[board_pos] == BLANK:
+                self.board[board_pos] = str(piece.icon)
+            else:
+                print("dealing with height fighting")
+                max_height = piece.height
+                for check in self.state["white"].values():
+                    if (check.y, check.x) == board_pos:
+                        if check.height > piece.height:
+                            self.board[board_pos] = str(check.icon)
+                            max_height = piece.height
+                for check in self.state["black"].values():
+                    if (check.y, check.x) == board_pos:
+                        if check.height > piece.height:
+                            self.board[board_pos] = str(check.icon)
+                            max_height = piece.height
+
+        for piece in self.state["black"].values():
+
+            board_pos = (piece.y, piece.x)
+            # Find where the piece should be
+            
+            # Check what character is currently on the board, if it is the icon, change nothing
+            if self.board[board_pos] == piece.icon:
+                continue
+            # If blank, update accordingly
+            elif self.board[board_pos] == BLANK:
+                self.board[board_pos] = str(piece.icon)
+            
+            # If height conflict, try to figure out what is the piece on top UNTESTED
+            else:
+                print("dealing with height fighting")
+                max_height = piece.height
+                for check in self.state["white"].values():
+                    if (check.y, check.x) == board_pos:
+                        if check.height > piece.height:
+                            self.board[board_pos] = str(check.icon)
+                            max_height = piece.height
+                for check in self.state["black"].values():
+                    if (check.y, check.x) == board_pos:
+                        if check.height > piece.height:
+                            self.board[board_pos] = str(check.icon)
+                            max_height = piece.height
+    def draw_board(self):
+        # draw the board onto the terminal
+        print(np.array([TOP_TRI,TOP_TRI,TOP_TRI,TOP_TRI,TOP_TRI], dtype='<U6'))
+        for row in self.board:
+            print(row)
+        print(np.array([BOT_TRI,BOT_TRI,BOT_TRI,BOT_TRI,BOT_TRI], dtype='<U6'))
+            
 
     def get_who_won(self):
         return self.winner
