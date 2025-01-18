@@ -242,11 +242,14 @@ class State:
     def get_player_cant_move(self):
         # horrendous and cursed, avert ye eyes
         for player in ["white", "black"]:
-            old = self.next_move
+            old_next = self.next_move
+            old_prev = self.prev_piece
             self.next_move = (player, None)
+            self.prev_piece = None
             if self.get_valid_moves() == []:
                 return player
-            self.next_move = old
+            self.next_move = old_next
+            self.prev_piece = old_prev
         return None
 
     def get_moves_json(self):
