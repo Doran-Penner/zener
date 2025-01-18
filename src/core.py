@@ -138,7 +138,15 @@ class State:
                 self.board[bp_y][bp_x] = str(piece.icon)
             else:
                 print("dealing with height fighting")
-                highest = max(filter(lambda piece: (piece.y, piece.x) == board_pos, chain(self.state['white'].values(), self.state['black'].values())), key=lambda piece: piece.height)
+                highest = max(
+                    filter(
+                        lambda piece: (piece.y, piece.x) == board_pos,
+                        chain(
+                            self.state["white"].values(), self.state["black"].values()
+                        ),
+                    ),
+                    key=lambda piece: piece.height,
+                )
                 self.board[bp_y][bp_x] = str(highest.icon)
 
         for piece in self.state["black"].values():
@@ -151,7 +159,15 @@ class State:
                 self.board[bp_y][bp_x] = str(piece.icon)
             else:
                 print("dealing with height fighting")
-                highest = max(filter(lambda piece: (piece.y, piece.x) == board_pos, chain(self.state['white'].values(), self.state['black'].values())), key=lambda piece: piece.height)
+                highest = max(
+                    filter(
+                        lambda piece: (piece.y, piece.x) == board_pos,
+                        chain(
+                            self.state["white"].values(), self.state["black"].values()
+                        ),
+                    ),
+                    key=lambda piece: piece.height,
+                )
                 self.board[bp_y][bp_x] = str(highest.icon)
 
     def draw_board(self):
@@ -283,13 +299,10 @@ class State:
             )
 
         # increment move tracker
-        self.prev_piece = self.next_move[1]
+        self.prev_piece = shape
         if self.next_move[1] is None:
             self.next_move = (self.other_team(player), shape)
         else:
-            self.next_move = (self.next_move[0], None)
-        # also if the player cannot move their first piece, just carry on to 2nd move
-        if self.get_valid_moves() == [] and self.next_move[1] is not None:
             self.next_move = (self.next_move[0], None)
 
         # check if someone loses by not moving
@@ -299,6 +312,13 @@ class State:
                 f"win_{self.winner}",
                 f"Team {self.winner} has won by blocking the other team from moving!",
             )
+
+        # continue until someone can move
+        while self.get_valid_moves() == []:
+            if self.next_move[1] is not None:
+                self.next_move = (self.next_move[0], None)
+            else:
+                self.next_move = (self.other_team(self.next_move[0]), None)
 
         # if nothing else triggers, we return boring success
         return ("move_success", "")
