@@ -160,10 +160,10 @@ class State:
         print("╔═══════════════════╗")
         print("║                   ║")
         print("╠═══╤═══╤═══╤═══╤═══╣")
-        for row in self.board[:-1]:
+        for row in self.board[-1:0:-1]:
             print("║ " + " │ ".join(row) + " ║")
             print("╟───┼───┼───┼───┼───╢")
-        print("║ " + " │ ".join(self.board[-1]) + " ║")
+        print("║ " + " │ ".join(self.board[0]) + " ║")
         print("╠═══╧═══╧═══╧═══╧═══╣")
         print("║                   ║")
         print("╚═══════════════════╝")
