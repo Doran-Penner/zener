@@ -6,6 +6,7 @@ game = State()
 response, extra_info = ("filler", "")
 
 while response not in ["win_white", "win_black", "already_over"]:
+    game.update_board()
     player_turn, required_move = game.get_next_move()
     if required_move is None:
         required_move = "any"
@@ -15,6 +16,7 @@ while response not in ["win_white", "win_black", "already_over"]:
 
     print("The board state is:")
     pp(game.get_full_board())
+    game.draw_board()
 
     print("Valid moves are:")
     pp(game.get_valid_moves())
