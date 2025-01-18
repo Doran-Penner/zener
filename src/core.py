@@ -167,11 +167,36 @@ class State:
                 self.board[bp_y][bp_x] = str(highest.icon)
 
     def draw_board(self):
-        # draw the board onto the terminal
-        print([TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI])
-        for row in self.board:
-            print(row)
-        print([BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI])
+        # print("╔═══════════════════╗")
+        # print("║                   ║")
+        # print("╠═══╤═══╤═══╤═══╤═══╣")
+        # print("║ S │ S │ S │ S │ S ║")
+        # print("╟───┼───┼───┼───┼───╢")
+        # print("║ S │ S │ S │ S │ S ║")
+        # print("╟───┼───┼───┼───┼───╢")
+        # print("║ S │ S │ S │ S │ S ║")
+        # print("╟───┼───┼───┼───┼───╢")
+        # print("║ S │ S │ S │ S │ S ║")
+        # print("╟───┼───┼───┼───┼───╢")
+        # print("║ S │ S │ S │ S │ S ║")
+        # print("╟───┼───┼───┼───┼───╢")
+        # print("║ S │ S │ S │ S │ S ║")
+        # print("╟───┼───┼───┼───┼───╢")
+        # print("║ S │ S │ S │ S │   ║")
+        # print("╠═══╧═══╧═══╧═══╧═══╣")
+        # print("║                   ║")
+        # print("╚═══════════════════╝")
+
+        print("╔═══════════════════╗")
+        print("║                   ║")
+        print("╠═══╤═══╤═══╤═══╤═══╣")
+        for row in self.board[:-1]:
+            print("║ " + " │ ".join(row) + " ║")
+            print("╟───┼───┼───┼───┼───╢")
+        print("║ " + " │ ".join(self.board[-1]) + " ║")
+        print("╠═══╧═══╧═══╧═══╧═══╣")
+        print("║                   ║")
+        print("╚═══════════════════╝")
 
     def get_who_won(self):
         return self.winner
