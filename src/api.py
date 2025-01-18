@@ -16,7 +16,7 @@ response, extra_info = ("filler", "")
 while response not in ["win_white", "win_black", "already_over"]:
     time.sleep(0.25)
     game.update_board()
-    print("\033[2J\033[H") #clear screen, return to terminal position 0,0
+    print("\033[2J\033[H")  # clear screen, return to terminal position 0,0
     game.draw_board()
     board = game.get_board_json()
 
@@ -39,7 +39,7 @@ while response not in ["win_white", "win_black", "already_over"]:
     # parse the bot's response
     bot_ret_json = json.loads(bot_ret.stdout.decode())
     print(f"Move attempt: {bot_ret_json}")
-    if bot_ret.stderr != b'':
+    if bot_ret.stderr != b"":
         print("Bot stderr:")
         print(bot_ret.stderr)
     # expect bot_ret's response to be

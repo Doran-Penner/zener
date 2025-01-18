@@ -30,6 +30,7 @@ The output must be a json object containing the `shape` to move and the `x` and 
 <details>
 <summary>Example: starting input and possible output</summary>
 Here's the first input that a program will receive. The spacing has been added for readability, but will probably not be like this in the actual output; we strongly recommend you use a pre-existing json parsing library instead of writing your own.
+
 ```json
 {
   "board": {
@@ -61,6 +62,7 @@ Here's the first input that a program will receive. The spacing has been added f
 }
 ```
 And here's a potential output:
+
 ```json
 {
   "shape": "circle",
@@ -92,6 +94,10 @@ for piece in valid:
         print("found it!", file=sys.stderr)  # optional: write whatever logs you want
         break  # make sure you don't keep writing output!
 ```
+
+### Other notes
+
+By default the game plays very quickly! You can change this by modifying the code in `src/api.py` to remove the `time.sleep` call. Also, if you want to see the whole log of the game (without it being cleared every move), remove the `print` call at the start of that loop.
 
 ## Contributing
 

@@ -97,7 +97,8 @@ class State:
     def __init__(self):
         # initialize to starting board
         white_pieces = {
-            shape: Piece(shape, ICONS[i], i, 0, 1, "white") for (i, shape) in enumerate(SHAPES)
+            shape: Piece(shape, ICONS[i], i, 0, 1, "white")
+            for (i, shape) in enumerate(SHAPES)
         }
         black_pieces = {
             shape: Piece(shape, ICONS[i], (WIDTH - 1) - i, HEIGHT - 1, 1, "black")
@@ -127,14 +128,26 @@ class State:
 
     def update_board(self):
         self.board = deepcopy(BLANK_BOARD)
-        all_pieces = list(self.state['white'].values()) + list(self.state['black'].values())
+        all_pieces = list(self.state["white"].values()) + list(
+            self.state["black"].values()
+        )
         for x in range(WIDTH):
             for y in range(HEIGHT):
-                pieces_at_pos = list(filter(lambda piece: piece.x == x and piece.y == y, all_pieces))
+                pieces_at_pos = list(
+                    filter(lambda piece: piece.x == x and piece.y == y, all_pieces)
+                )
                 if len(pieces_at_pos) == 0:
                     continue
                 highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
-                self.board[y][x] = (WHITE_ANSI_CODE if highest_piece.color == 'white' else BLACK_ANSI_CODE) + highest_piece.icon + RESET_ANSI_CODE
+                self.board[y][x] = (
+                    (
+                        WHITE_ANSI_CODE
+                        if highest_piece.color == "white"
+                        else BLACK_ANSI_CODE
+                    )
+                    + highest_piece.icon
+                    + RESET_ANSI_CODE
+                )
 
     def draw_board(self):
         # print("╔═══════════════════╗")
