@@ -250,6 +250,16 @@ class State:
             ret.extend(legal_moves)
         return ret
 
+    def get_player_cant_move(self):
+        # horrendous and cursed, avert ye eyes
+        for player in ["white", "black"]:
+            old = self.next_move
+            self.next_move = (player, None)
+            if self.get_valid_moves() == []:
+                return player
+            self.next_move = old
+        return None
+
     def get_moves_json(self):
         # quickndirty wrapper of above func for new json-oriented api
         lst = self.get_valid_moves()
@@ -301,8 +311,8 @@ class State:
             self.next_move = (self.next_move[0], None)
 
         # check if someone loses by not moving
-        if self.get_valid_moves() == []:
-            self.winner = self.other_team(self.next_move[0])
+        if (loser := self.get_player_cant_move()) is not None:
+            self.winner = self.other_team(loser)
             return (
                 f"win_{self.winner}",
                 f"Team {self.winner} has won by blocking the other team from moving!",
