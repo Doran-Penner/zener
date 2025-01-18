@@ -206,7 +206,7 @@ class State:
         ret = []
         for moving_piece in pieces:
             # make sure we can't double-move
-            if moving_piece.shape == self.prev_piece:
+            if moving_piece.shape == self.prev_piece and piece_to_move is None:
                 continue
             # find out if piece is under something
             all_pieces = chain.from_iterable(
@@ -292,8 +292,10 @@ class State:
         # increment move tracker
         self.prev_piece = shape
         if self.next_move[1] is None:
+            # we just played free, now they respond
             self.next_move = (self.other_team(player), shape)
         else:
+            # now we get our free move
             self.next_move = (self.next_move[0], None)
 
         # check if someone loses by not moving
