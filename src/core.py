@@ -64,7 +64,7 @@ Stuff they need to know!
 
 SHAPES = ["circle", "plus", "wave", "square", "star"]
 ICONS = ["o", "+", "~", "▣", "*"]
-BLANK = "\u25a1"
+BLANK = " "
 TOP_TRI = "\u25b3"
 BOT_TRI = "\u25bc"
 WIDTH = 5
