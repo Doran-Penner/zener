@@ -1,4 +1,4 @@
-# Zener (WIP)
+# Zener
 Playable implementation of the board game
 [Zener](https://en.boardgamearena.com/tutorial?game=zener&tutorial=817),
 make for Paideia 2025.
