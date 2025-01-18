@@ -65,16 +65,17 @@ Stuff they need to know!
 SHAPES = ["circle", "plus", "wave", "square", "star"]
 ICONS = ["o", "+", "~", "▣", "*"]
 BLANK = " "
-TOP_TRI = "\u25b3"
-BOT_TRI = "\u25bc"
 WIDTH = 5
 HEIGHT = 7
+WHITE_ANSI_CODE = "\033[0;31m"
+BLACK_ANSI_CODE = "\033[0;34m"
+RESET_ANSI_CODE = "\033[0m"
 
 BLANK_BOARD = [[BLANK for _ in range(5)] for _ in range(7)]
 
 
 class Piece:
-    def __init__(self, shape, icon, x_pos, y_pos, height):
+    def __init__(self, shape, icon, x_pos, y_pos, height, color):
         assert shape in SHAPES, f"Invalid shape name: {shape}"
         self.x = x_pos
         self.y = y_pos
@@ -86,18 +87,20 @@ class Piece:
         self.icon = icon
         # Added icon for graphical purpose
 
+        self.color = color
+
     def __repr__(self):
-        return f"<{self.shape} at ({self.x}, {self.y}) with height {self.height}>"
+        return f"<{self.color} {self.shape} at ({self.x}, {self.y}) with height {self.height}>"
 
 
 class State:
     def __init__(self):
         # initialize to starting board
         white_pieces = {
-            shape: Piece(shape, ICONS[i], i, 0, 1) for (i, shape) in enumerate(SHAPES)
+            shape: Piece(shape, ICONS[i], i, 0, 1, "white") for (i, shape) in enumerate(SHAPES)
         }
         black_pieces = {
-            shape: Piece(shape, ICONS[i], (WIDTH - 1) - i, HEIGHT - 1, 1)
+            shape: Piece(shape, ICONS[i], (WIDTH - 1) - i, HEIGHT - 1, 1, "black")
             for (i, shape) in enumerate(SHAPES)
         }
         self.state = {"white": white_pieces, "black": black_pieces}
@@ -124,47 +127,14 @@ class State:
 
     def update_board(self):
         self.board = deepcopy(BLANK_BOARD)
-
-        # This isnt pretty, but it is something
-        # It will generate a gameboard, right now i just refresh the board every time
-        # TODO: Make more elegant, and integrate with the game history better, this is a rough n' tumble version atm
-        for piece in self.state["white"].values():
-            board_pos = (piece.y, piece.x)
-            bp_y, bp_x = board_pos
-            if self.board[bp_y][bp_x] == piece.icon:
-                continue
-            elif self.board[bp_y][bp_x] == BLANK:
-                self.board[bp_y][bp_x] = str(piece.icon)
-            else:
-                highest = max(
-                    filter(
-                        lambda piece: (piece.y, piece.x) == board_pos,
-                        chain(
-                            self.state["white"].values(), self.state["black"].values()
-                        ),
-                    ),
-                    key=lambda piece: piece.height,
-                )
-                self.board[bp_y][bp_x] = str(highest.icon)
-
-        for piece in self.state["black"].values():
-            board_pos = (piece.y, piece.x)
-            bp_y, bp_x = board_pos
-            if self.board[bp_y][bp_x] == piece.icon:
-                continue
-            elif self.board[bp_y][bp_x] == BLANK:
-                self.board[bp_y][bp_x] = str(piece.icon)
-            else:
-                highest = max(
-                    filter(
-                        lambda piece: (piece.y, piece.x) == board_pos,
-                        chain(
-                            self.state["white"].values(), self.state["black"].values()
-                        ),
-                    ),
-                    key=lambda piece: piece.height,
-                )
-                self.board[bp_y][bp_x] = str(highest.icon)
+        all_pieces = list(self.state['white'].values()) + list(self.state['black'].values())
+        for x in range(WIDTH):
+            for y in range(HEIGHT):
+                pieces_at_pos = list(filter(lambda piece: piece.x == x and piece.y == y, all_pieces))
+                if len(pieces_at_pos) == 0:
+                    continue
+                highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
+                self.board[y][x] = (WHITE_ANSI_CODE if highest_piece.color == 'white' else BLACK_ANSI_CODE) + highest_piece.icon + RESET_ANSI_CODE
 
     def draw_board(self):
         # print("╔═══════════════════╗")
