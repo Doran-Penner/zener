@@ -1,8 +1,10 @@
 from copy import deepcopy
 from functools import reduce
 from itertools import chain
-from termcolor import colored
+
+# from termcolor import colored
 import numpy as np
+
 """
 We store state by player, then piece, then position & other data.
 The piece is an object, everything else is a dict.
@@ -65,22 +67,24 @@ Stuff they need to know!
 
 SHAPES = ["circle", "plus", "wave", "square", "star"]
 ICONS = ["o", "+", "~", "▣", "*"]
-BLANK = u'\u25A1'
-TOP_TRI = u'\u25B3'
-BOT_TRI = u'\u25BC'
+BLANK = "\u25a1"
+TOP_TRI = "\u25b3"
+BOT_TRI = "\u25bc"
 WIDTH = 5
 HEIGHT = 7
 
 BLANK_BOARD = np.array(
-            [ 
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-                [BLANK,BLANK,BLANK,BLANK,BLANK],
-            ], dtype='<U6')
+    [
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+        [BLANK, BLANK, BLANK, BLANK, BLANK],
+    ],
+    dtype="<U6",
+)
 
 
 class Piece:
@@ -120,11 +124,19 @@ class State:
         self.other_team = lambda color: "black" if color == "white" else "white"
         # old logger, we use stdout in new api
         self.logged_moves = []
-
         self.board = deepcopy(BLANK_BOARD)
 
-    def update_board(self):
+    def get_next_move_new(self):
+        player, req_piece = self.next_move
+        if req_piece is None:
+            responding = False
+            prev = req_piece
+        else:
+            responding = True
+            prev = self.prev_piece
+        return player, responding, prev
 
+    def update_board(self):
         self.board = deepcopy(BLANK_BOARD)
 
         # This isnt pretty, but it is something
@@ -152,17 +164,16 @@ class State:
                             max_height = piece.height
 
         for piece in self.state["black"].values():
-
             board_pos = (piece.y, piece.x)
             # Find where the piece should be
-            
+
             # Check what character is currently on the board, if it is the icon, change nothing
             if self.board[board_pos] == piece.icon:
                 continue
             # If blank, update accordingly
             elif self.board[board_pos] == BLANK:
                 self.board[board_pos] = str(piece.icon)
-            
+
             # If height conflict, try to figure out what is the piece on top UNTESTED
             else:
                 print("dealing with height fighting")
@@ -177,13 +188,13 @@ class State:
                         if check.height > piece.height:
                             self.board[board_pos] = str(check.icon)
                             max_height = piece.height
+
     def draw_board(self):
         # draw the board onto the terminal
-        print(np.array([TOP_TRI,TOP_TRI,TOP_TRI,TOP_TRI,TOP_TRI], dtype='<U6'))
+        print(np.array([TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI], dtype="<U6"))
         for row in self.board:
             print(row)
-        print(np.array([BOT_TRI,BOT_TRI,BOT_TRI,BOT_TRI,BOT_TRI], dtype='<U6'))
-            
+        print(np.array([BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI], dtype="<U6"))
 
     def get_who_won(self):
         return self.winner

@@ -15,7 +15,7 @@ response, extra_info = ("filler", "")
 while response not in ["win_white", "win_black", "already_over"]:
     board = game.get_board_json()
 
-    player, responding, prev = game.get_next_move_new()  # TODO make it
+    player, responding, prev = game.get_next_move_new()
 
     valid = game.get_moves_json()
 
@@ -34,8 +34,14 @@ while response not in ["win_white", "win_black", "already_over"]:
     # parse the bot's response
     bot_ret_json = json.loads(bot_ret.stdout.decode())
     sys.stdout.write(f"Move attempt: {bot_ret_json}\n")
-    # TODO parse the above into a tuple that the engine wants
-    engine_request = bot_ret_json
+    # expect bot_ret's response to be
+    # {"shape": "wave", "x": 2, "y": 1}
+    engine_request = (
+        player,
+        bot_ret_json["shape"],
+        bot_ret_json["x"],
+        bot_ret_json["y"],
+    )
 
     response, extra_info = game.try_move(engine_request)
     sys.stdout.write(f"Engine response: {response}, {extra_info}\n")
