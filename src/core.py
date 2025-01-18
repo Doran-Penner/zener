@@ -40,8 +40,21 @@ game end the `get_who_won()` method wll return the winner of the game, either
 "black" or "white" (and that information will also be given on the winning move).
 """
 
-# TODO do we need `extra_info`? We could just remove it...
-# also I think the "programmatic API" should give functions the output of
+"""
+Stuff they need to know!
+{
+    "board": <output of get_board_json>,
+    "player": <what player they're playing as>,
+    "valid": <output of FUTURE valid_moves_json>,
+    "responding": <whether they're playing their "reaction" move (1st) or not (2nd)>,
+    "prev": <piece or null.
+                  If above is false, it's the one piece they can't use (if any);
+                  otherwise it's the piece they have to move next.
+                  It's messy, but it is what it is.>,
+}
+"""
+
+# I think the "programmatic API" should give functions the output of
 # `get_next_move`, get_full_board`, and `get_valid_moves`
 # and expect a return in the move schema
 # the only parts that the external world should interface with are
@@ -59,7 +72,7 @@ class Piece:
         assert shape in SHAPES, f"Invalid shape name: {shape}"
         self.x = x_pos
         self.y = y_pos
-        self.shape = shape  # TODO do we need this at all?
+        self.shape = shape
         # note: height starts at 1, because it's easier to
         # think of an empty square as having height 0
         self.height = height
@@ -86,7 +99,7 @@ class State:
         self.winner = None
         # small convenience function
         self.other_team = lambda color: "black" if color == "white" else "white"
-        # also for debugging, we keeep full history of moves (and attempts)
+        # old logger, we use stdout in new api
         self.logged_moves = []
 
     def get_who_won(self):
@@ -97,6 +110,21 @@ class State:
 
     def get_full_board(self):
         return deepcopy(self.state)  # copy so they can't modify it
+
+    def get_board_json(self):
+        # do a bunch of dict mapping to convert the internal Piece
+        # representations into normal json that other programs can read
+        return {
+            color: {
+                shape: {
+                    "x": piece_obj.x,
+                    "y": piece_obj.y,
+                    "height": piece_obj.height,
+                }
+                for (shape, piece_obj) in colored_pieces.items()
+            }
+            for (color, colored_pieces) in self.state.items()
+        }
 
     def get_valid_moves(self):
         # return list of valid moves, taking into account self.next_move
@@ -142,15 +170,15 @@ class State:
                 if (final_x := moving_piece.x + dir_x) in x_range
                 and (final_y := moving_piece.y + dir_y) in y_range
             )
-            # another way to do the above operation
-            # legal_moves = filter(
-            #     lambda pair: pair[0] in x_range and pair[1] in y_range,
-            #     map(
-            #         lambda pair: (pair[0] + moving_piece.x, pair[1] + moving_piece.y),
-            #         [(-1, 0), (1, 0), (0, -1), (0, 1)],
-            #     ),
-            # )
             ret.extend(legal_moves)
+        return ret
+
+    def get_moves_json(self):
+        # quickndirty wrapper of above func for new json-oriented api
+        lst = self.get_valid_moves()
+        ret = {shape: [] for shape in SHAPES}
+        for _, shape, x, y in lst:
+            ret[shape].append({"x": x, "y": y})
         return ret
 
     def _try_move(self, move):
