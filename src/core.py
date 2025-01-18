@@ -2,9 +2,6 @@ from copy import deepcopy
 from functools import reduce
 from itertools import chain
 
-# from termcolor import colored
-import numpy as np
-
 """
 We store state by player, then piece, then position & other data.
 The piece is an object, everything else is a dict.
@@ -73,18 +70,7 @@ BOT_TRI = "\u25bc"
 WIDTH = 5
 HEIGHT = 7
 
-BLANK_BOARD = np.array(
-    [
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-        [BLANK, BLANK, BLANK, BLANK, BLANK],
-    ],
-    dtype="<U6",
-)
+BLANK_BOARD = [[BLANK for _ in range(5)] for _ in range(7)]
 
 
 class Piece:
@@ -145,56 +131,53 @@ class State:
         for piece in self.state["white"].values():
             print(piece)
             board_pos = (piece.y, piece.x)
-            if self.board[board_pos] == piece.icon:
+            bp_y, bp_x = board_pos
+            if self.board[bp_y][bp_x] == piece.icon:
                 continue
-            elif self.board[board_pos] == BLANK:
-                self.board[board_pos] = str(piece.icon)
+            elif self.board[bp_y][bp_x] == BLANK:
+                self.board[bp_y][bp_x] = str(piece.icon)
             else:
                 print("dealing with height fighting")
                 max_height = piece.height
                 for check in self.state["white"].values():
                     if (check.y, check.x) == board_pos:
                         if check.height > piece.height:
-                            self.board[board_pos] = str(check.icon)
+                            self.board[bp_y][bp_x] = str(check.icon)
                             max_height = piece.height
                 for check in self.state["black"].values():
                     if (check.y, check.x) == board_pos:
                         if check.height > piece.height:
-                            self.board[board_pos] = str(check.icon)
+                            self.board[bp_y][bp_x] = str(check.icon)
                             max_height = piece.height
 
         for piece in self.state["black"].values():
+            print(piece)
             board_pos = (piece.y, piece.x)
-            # Find where the piece should be
-
-            # Check what character is currently on the board, if it is the icon, change nothing
-            if self.board[board_pos] == piece.icon:
+            bp_y, bp_x = board_pos
+            if self.board[bp_y][bp_x] == piece.icon:
                 continue
-            # If blank, update accordingly
-            elif self.board[board_pos] == BLANK:
-                self.board[board_pos] = str(piece.icon)
-
-            # If height conflict, try to figure out what is the piece on top UNTESTED
+            elif self.board[bp_y][bp_x] == BLANK:
+                self.board[bp_y][bp_x] = str(piece.icon)
             else:
                 print("dealing with height fighting")
                 max_height = piece.height
-                for check in self.state["white"].values():
-                    if (check.y, check.x) == board_pos:
-                        if check.height > piece.height:
-                            self.board[board_pos] = str(check.icon)
-                            max_height = piece.height
                 for check in self.state["black"].values():
                     if (check.y, check.x) == board_pos:
                         if check.height > piece.height:
-                            self.board[board_pos] = str(check.icon)
+                            self.board[bp_y][bp_x] = str(check.icon)
+                            max_height = piece.height
+                for check in self.state["white"].values():
+                    if (check.y, check.x) == board_pos:
+                        if check.height > piece.height:
+                            self.board[bp_y][bp_x] = str(check.icon)
                             max_height = piece.height
 
     def draw_board(self):
         # draw the board onto the terminal
-        print(np.array([TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI], dtype="<U6"))
+        print([TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI, TOP_TRI])
         for row in self.board:
             print(row)
-        print(np.array([BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI], dtype="<U6"))
+        print([BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI, BOT_TRI])
 
     def get_who_won(self):
         return self.winner
