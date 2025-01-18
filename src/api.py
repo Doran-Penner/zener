@@ -4,6 +4,7 @@ import sys
 import subprocess
 import json
 import core
+import time
 
 # very simple cli parsing
 bots = {"white": sys.argv[1], "black": sys.argv[2]}
@@ -13,6 +14,7 @@ game = core.State()
 response, extra_info = ("filler", "")
 
 while response not in ["win_white", "win_black", "already_over"]:
+    time.sleep(0.25)
     game.update_board()
     print("\033[2J\033[H") #clear screen, return to terminal position 0,0
     game.draw_board()
