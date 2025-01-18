@@ -35,7 +35,10 @@ while response not in ["win_white", "win_black", "already_over"]:
 
     # parse the bot's response
     bot_ret_json = json.loads(bot_ret.stdout.decode())
-    sys.stdout.write(f"Move attempt: {bot_ret_json}\n")
+    print(f"Move attempt: {bot_ret_json}")
+    if bot_ret.stderr != b'':
+        print("Bot stderr:")
+        print(bot_ret.stderr)
     # expect bot_ret's response to be
     # {"shape": "wave", "x": 2, "y": 1}
     engine_request = (

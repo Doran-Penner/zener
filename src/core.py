@@ -129,7 +129,6 @@ class State:
         # It will generate a gameboard, right now i just refresh the board every time
         # TODO: Make more elegant, and integrate with the game history better, this is a rough n' tumble version atm
         for piece in self.state["white"].values():
-            print(piece)
             board_pos = (piece.y, piece.x)
             bp_y, bp_x = board_pos
             if self.board[bp_y][bp_x] == piece.icon:
@@ -137,7 +136,6 @@ class State:
             elif self.board[bp_y][bp_x] == BLANK:
                 self.board[bp_y][bp_x] = str(piece.icon)
             else:
-                print("dealing with height fighting")
                 highest = max(
                     filter(
                         lambda piece: (piece.y, piece.x) == board_pos,
@@ -150,7 +148,6 @@ class State:
                 self.board[bp_y][bp_x] = str(highest.icon)
 
         for piece in self.state["black"].values():
-            print(piece)
             board_pos = (piece.y, piece.x)
             bp_y, bp_x = board_pos
             if self.board[bp_y][bp_x] == piece.icon:
@@ -158,7 +155,6 @@ class State:
             elif self.board[bp_y][bp_x] == BLANK:
                 self.board[bp_y][bp_x] = str(piece.icon)
             else:
-                print("dealing with height fighting")
                 highest = max(
                     filter(
                         lambda piece: (piece.y, piece.x) == board_pos,
