@@ -309,8 +309,10 @@ class State:
         # continue until someone can move
         while self.get_valid_moves() == []:
             if self.next_move[1] is not None:
+                print(f"LOG: skipping response move of {self.next_move[0]}")
                 self.next_move = (self.next_move[0], None)
             else:
+                print(f"LOG: skipping free move (and response) of {self.next_move[0]}")
                 self.next_move = (self.other_team(self.next_move[0]), None)
 
         # if nothing else triggers, we return boring success
