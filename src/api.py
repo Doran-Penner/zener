@@ -13,6 +13,8 @@ game = core.State()
 response, extra_info = ("filler", "")
 
 while response not in ["win_white", "win_black", "already_over"]:
+    game.update_board()
+    game.draw_board()
     board = game.get_board_json()
 
     player, responding, prev = game.get_next_move_new()
