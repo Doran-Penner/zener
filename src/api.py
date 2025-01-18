@@ -14,6 +14,7 @@ response, extra_info = ("filler", "")
 
 while response not in ["win_white", "win_black", "already_over"]:
     game.update_board()
+    print("\033[2J\033[H") #clear screen, return to terminal position 0,0
     game.draw_board()
     board = game.get_board_json()
 
