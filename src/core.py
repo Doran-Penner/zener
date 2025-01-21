@@ -5,9 +5,6 @@ from enum import StrEnum, auto
 from typing import Self
 
 
-SHAPES = ["circle", "plus", "wave", "square", "star"]
-ICONS = ["o", "+", "~", "▣", "*"]
-BLANK = " "
 WIDTH = 5
 HEIGHT = 7
 RESET_ANSI_CODE = "\033[0m"
@@ -81,7 +78,6 @@ class Move:
 
 class Piece:
     def __init__(self, shape: Shape, x_pos: int, y_pos: int, height: int, color: Color):
-        assert shape in SHAPES, f"Invalid shape name: {shape}"
         self.x = x_pos
         self.y = y_pos
         self.shape = shape
@@ -149,7 +145,7 @@ class State:
         # print("║                   ║")
         # print("╚═══════════════════╝")
 
-        board = [[BLANK for _ in range(5)] for _ in range(7)]
+        board = [[" " for _ in range(5)] for _ in range(7)]
         all_pieces = list(self.state[Color.WHITE].values()) + list(
             self.state[Color.BLACK].values()
         )

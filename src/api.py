@@ -2,7 +2,7 @@
 
 import sys
 from move_getters import get_from_bot
-from play_game import play_game, MoveGetter
+from play_game import play_game
 
 
 winner = play_game(

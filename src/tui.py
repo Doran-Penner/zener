@@ -1,5 +1,5 @@
 from move_getters import get_from_human
-from play_game import play_game, MoveGetter
+from play_game import play_game
 
 
 def end_of_turn():
