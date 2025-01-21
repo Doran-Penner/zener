@@ -1,11 +1,15 @@
-from core import State
+from core import Color, Move, MoveResult, Shape, State
 from pprint import pp
 
 game = State()
 
 response, extra_info = ("filler", "")
 
-while response not in ["win_white", "win_black", "already_over"]:
+while response not in [
+    MoveResult.WIN_WHITE,
+    MoveResult.WIN_BLACK,
+    MoveResult.ALREADY_OVER,
+]:
     game.update_board()
     player_turn, required_move = game.get_next_move()
     if required_move is None:
@@ -28,7 +32,7 @@ while response not in ["win_white", "win_black", "already_over"]:
     in_y = input("y (e.g. 1): ")
 
     try:
-        full_request = (in_player, in_shape, int(in_x), int(in_y))
+        full_request = Move(Color(in_player), Shape(in_shape), int(in_x), int(in_y))
     except ValueError:
         print('ERROR: Invalid input type (e.g. "wave" for x)')
     print(f"Your move: {full_request}")

@@ -3,17 +3,21 @@
 import sys
 import subprocess
 import json
-import core
 import time
+from core import Color, Move, MoveResult, Shape, State
 
 # very simple cli parsing
-bots = {"white": sys.argv[1], "black": sys.argv[2]}
+bots = {Color.WHITE: sys.argv[1], Color.BLACK: sys.argv[2]}
 
-game = core.State()
+game = State()
 
 response, extra_info = ("filler", "")
 
-while response not in ["win_white", "win_black", "already_over"]:
+while response not in [
+    MoveResult.WIN_WHITE,
+    MoveResult.WIN_BLACK,
+    MoveResult.ALREADY_OVER,
+]:
     time.sleep(0.25)
     game.update_board()
     print("\033[2J\033[H")  # clear screen, return to terminal position 0,0
@@ -44,9 +48,9 @@ while response not in ["win_white", "win_black", "already_over"]:
         print(bot_ret.stderr)
     # expect bot_ret's response to be
     # {"shape": "wave", "x": 2, "y": 1}
-    engine_request = (
+    engine_request = Move(
         player,
-        bot_ret_json["shape"],
+        Shape(bot_ret_json["shape"]),
         bot_ret_json["x"],
         bot_ret_json["y"],
     )
