@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from move_getters import get_from_human, get_from_bot
 from play_game import play_game

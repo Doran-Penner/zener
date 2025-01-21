@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from move_getters import get_from_human
 from play_game import play_game
 
