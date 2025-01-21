@@ -22,18 +22,26 @@ def get_from_human(
     print("Valid moves are:")
     pp(valid)
 
-    print("Input your move request.")
-    in_shape = input('shape (e.g. "wave"): ')
-    in_x = input("x (e.g. 2): ")
-    in_y = input("y (e.g. 1): ")
+    move_ok = False
+    while not move_ok:
+        print("Input your move request.")
+        in_shape = input('shape (e.g. "wave"): ')
+        in_x = input("x (e.g. 2): ")
+        in_y = input("y (e.g. 1): ")
 
-    try:
-        full_request = Move(player, Shape(in_shape), int(in_x), int(in_y))
-    except ValueError:
-        print('ERROR: Invalid input type (e.g. "wave" for x)')
-    print(f"Your move: {full_request}")
+        try:
+            move = Move(player, Shape(in_shape), int(in_x), int(in_y))
+        except ValueError:
+            print('ERROR: Invalid input type (e.g. "wave" for x)')
+            continue
 
-    return full_request
+        print(f"Your move: {move}")
+        if move in valid:
+            move_ok = True
+        else:
+            print("This is not a valid move!")
+
+    return move
 
 
 def get_from_bot(bot_path: str) -> MoveGetter:
