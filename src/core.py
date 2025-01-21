@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import reduce
 from itertools import chain
 from enum import StrEnum, auto
