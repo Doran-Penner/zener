@@ -1,37 +1,5 @@
-from core import Color, Move, Piece, Shape
+from move_getters import get_from_human
 from play_game import play_game, MoveGetter
-from pprint import pp
-
-
-def f(
-    player: Color,
-    board: dict[Color, dict[Shape, Piece]],
-    valid: list[Move],
-    responding: bool,
-    prev: Piece | None,
-    required_move: Piece | None,
-) -> Move:
-    if required_move is None:
-        required_move = "any"
-    else:
-        required_move = "their " + required_move
-    print(f"It is {player}'s move, who must move {required_move} piece next.")
-
-    print("Valid moves are:")
-    pp(valid)
-
-    print("Input your move request.")
-    in_shape = input('shape (e.g. "wave"): ')
-    in_x = input("x (e.g. 2): ")
-    in_y = input("y (e.g. 1): ")
-
-    try:
-        full_request = Move(player, Shape(in_shape), int(in_x), int(in_y))
-    except ValueError:
-        print('ERROR: Invalid input type (e.g. "wave" for x)')
-    print(f"Your move: {full_request}")
-
-    return full_request
 
 
 def end_of_turn():
@@ -43,8 +11,8 @@ def end_of_turn():
 
 
 winner = play_game(
-    get_white_move=f,
-    get_black_move=f,
+    get_white_move=get_from_human,
+    get_black_move=get_from_human,
     verbose=True,
     sleep_time=0.25,
     draw_over=True,
