@@ -23,7 +23,7 @@ def play_game(
     sleep_time: float | None = None,
     draw_over: bool = True,
     end_of_turn_hook: Callable[[], None] | None = None,
-) -> str:
+) -> Color:
     def vp(*args, **kwargs):
         if verbose:
             print(args, kwargs)
