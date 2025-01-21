@@ -50,6 +50,9 @@ def get_getter_for_player(player: Color) -> MoveGetter:
             capture_output=True,
         )
 
+        if bot_ret.returncode != 0:
+            print(f"WARN: {player.value}'s bot returned exit code {bot_ret.returncode}")
+            print("This could indicate a problem with the bot.")
         # parse the bot's response
         bot_ret_json = json.loads(bot_ret.stdout.decode())
         print(f"Move attempt: {bot_ret_json}")
