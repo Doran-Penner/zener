@@ -1,7 +1,7 @@
 import core
 import time
 from collections.abc import Callable
-from core import MoveResult, Color, Move
+from core import MoveResult, Color, Move, Piece
 from typing import Any
 
 type MoveGetter = Callable[[Any, list[Move], bool, Piece | None, Piece | None], Move]

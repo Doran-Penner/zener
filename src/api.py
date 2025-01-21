@@ -3,9 +3,9 @@
 import sys
 import subprocess
 import json
-import time
 from play_game import play_game, MoveGetter
-from core import Color, Move, Shape, State
+from core import Color, Move, Shape, Piece
+
 
 def get_getter_for_player(player: Color) -> MoveGetter:
     def f(board, valid, responding, prev, next) -> Move:

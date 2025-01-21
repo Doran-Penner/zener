@@ -1,4 +1,4 @@
-from core import State, Color, Move, Shape
+from core import Color, Move, Shape
 from play_game import play_game, MoveGetter
 from pprint import pp
 
