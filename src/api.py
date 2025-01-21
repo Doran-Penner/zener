@@ -4,58 +4,76 @@ import sys
 import subprocess
 import json
 import time
-from core import Color, Move, MoveResult, Shape, State
+from play_game import play_game, MoveGetter
+from core import Color, Move, Shape, State
 
-# very simple cli parsing
-bots = {Color.WHITE: sys.argv[1], Color.BLACK: sys.argv[2]}
+def get_getter_for_player(player: Color) -> MoveGetter:
+    def f(board, valid, responding, prev, next) -> Move:
+        def get_board_json(board_state: dict[Color, dict[Shape, Piece]]):
+            # do a bunch of dict mapping to convert the internal Piece
+            # representations into normal json that other programs can read
+            return {
+                color: {
+                    shape: {
+                        "x": piece_obj.x,
+                        "y": piece_obj.y,
+                        "height": piece_obj.height,
+                    }
+                    for (shape, piece_obj) in colored_pieces.items()
+                }
+                for (color, colored_pieces) in board_state.items()
+            }
 
-game = State()
+        board = get_board_json(board)
 
-response, extra_info = ("filler", "")
+        def get_moves_json(valid_moves: list[Move]):
+            # quickndirty wrapper of above func for new json-oriented api
+            lst = valid_moves
+            ret = {shape: [] for shape in Shape}
+            for move in lst:
+                ret[move.shape].append({"x": move.x, "y": move.y})
+            return ret
 
-while response not in [
-    MoveResult.WIN_WHITE,
-    MoveResult.WIN_BLACK,
-    MoveResult.ALREADY_OVER,
-]:
-    time.sleep(0.25)
-    game.update_board()
-    print("\033[2J\033[H")  # clear screen, return to terminal position 0,0
-    game.draw_board()
-    board = game.get_board_json()
+        valid = get_moves_json(valid)
 
-    player, responding, prev = game.get_next_move_new()
+        # run the relevant process
+        combined_input = {
+            "board": board,
+            "player": player,
+            "valid": valid,
+            "responding": responding,
+            "prev": prev,
+        }
+        bot_ret = subprocess.run(
+            [sys.argv[1 if player == Color.WHITE else 2]],
+            input=json.dumps(combined_input).encode(),
+            capture_output=True,
+        )
 
-    valid = game.get_moves_json()
+        # parse the bot's response
+        bot_ret_json = json.loads(bot_ret.stdout.decode())
+        print(f"Move attempt: {bot_ret_json}")
+        if bot_ret.stderr != b"":
+            print("Bot stderr:")
+            print(bot_ret.stderr)
+        # expect bot_ret's response to be
+        # {"shape": "wave", "x": 2, "y": 1}
+        return Move(
+            player,
+            Shape(bot_ret_json["shape"]),
+            bot_ret_json["x"],
+            bot_ret_json["y"],
+        )
 
-    # run the relevant process
-    combined_input = {
-        "board": board,
-        "player": player,
-        "valid": valid,
-        "responding": responding,
-        "prev": prev,
-    }
-    bot_ret = subprocess.run(
-        [bots[player]], input=json.dumps(combined_input).encode(), capture_output=True
-    )
+    return f
 
-    # parse the bot's response
-    bot_ret_json = json.loads(bot_ret.stdout.decode())
-    print(f"Move attempt: {bot_ret_json}")
-    if bot_ret.stderr != b"":
-        print("Bot stderr:")
-        print(bot_ret.stderr)
-    # expect bot_ret's response to be
-    # {"shape": "wave", "x": 2, "y": 1}
-    engine_request = Move(
-        player,
-        Shape(bot_ret_json["shape"]),
-        bot_ret_json["x"],
-        bot_ret_json["y"],
-    )
 
-    response, extra_info = game.try_move(engine_request)
-    sys.stdout.write(f"Engine response: {response}, {extra_info}\n")
+winner = play_game(
+    get_white_move=get_getter_for_player(Color.WHITE),
+    get_black_move=get_getter_for_player(Color.BLACK),
+    verbose=True,
+    sleep_time=0.25,
+    draw_over=True,
+)
 
-sys.stdout.write(f"Game is over! Winner:\n{game.get_who_won()}\n")
+print(f"Game is over! Winner: {winner}")

@@ -249,21 +249,6 @@ class State:
     def get_full_board(self) -> dict[Color, dict[Shape, Piece]]:
         return deepcopy(self.state)  # copy so they can't modify it
 
-    def get_board_json(self):
-        # do a bunch of dict mapping to convert the internal Piece
-        # representations into normal json that other programs can read
-        return {
-            color: {
-                shape: {
-                    "x": piece_obj.x,
-                    "y": piece_obj.y,
-                    "height": piece_obj.height,
-                }
-                for (shape, piece_obj) in colored_pieces.items()
-            }
-            for (color, colored_pieces) in self.state.items()
-        }
-
     def get_valid_moves(self) -> list[Move]:
         # return list of valid moves, taking into account self.next_move
         player, piece_to_move = self.next_move
@@ -323,14 +308,6 @@ class State:
             self.next_move = old_next
             self.prev_piece = old_prev
         return None
-
-    def get_moves_json(self):
-        # quickndirty wrapper of above func for new json-oriented api
-        lst = self.get_valid_moves()
-        ret = {shape: [] for shape in SHAPES}
-        for move in lst:
-            ret[move.shape].append({"x": move.x, "y": move.y})
-        return ret
 
     def _try_move(self, move: Move) -> tuple[MoveResult, str]:
         if self.winner is not None:
