@@ -1,4 +1,3 @@
-from copy import deepcopy
 from functools import reduce
 from itertools import chain
 from enum import StrEnum, auto
@@ -11,8 +10,6 @@ BLANK = " "
 WIDTH = 5
 HEIGHT = 7
 RESET_ANSI_CODE = "\033[0m"
-
-BLANK_BOARD = [[BLANK for _ in range(5)] for _ in range(7)]
 
 
 class Shape(StrEnum):
@@ -119,7 +116,6 @@ class State:
         self.winner = None
         # not currently used but it's nice to have when needed
         self.logged_moves = []
-        self.board = deepcopy(BLANK_BOARD)
 
     def get_next_move_new(self) -> tuple[Color, bool, Piece | None]:
         player, req_piece = self.next_move
@@ -130,23 +126,6 @@ class State:
             responding = True
             prev = self.prev_piece
         return player, responding, prev
-
-    def update_board(self) -> None:
-        self.board = deepcopy(BLANK_BOARD)
-        all_pieces = list(self.state[Color.WHITE].values()) + list(
-            self.state[Color.BLACK].values()
-        )
-        for x in range(WIDTH):
-            for y in range(HEIGHT):
-                pieces_at_pos = list(
-                    filter(lambda piece: piece.x == x and piece.y == y, all_pieces)
-                )
-                if len(pieces_at_pos) == 0:
-                    continue
-                highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
-                self.board[y][x] = (
-                    highest_piece.color.ansi + highest_piece.icon + RESET_ANSI_CODE
-                )
 
     def draw_board(self) -> None:
         # print("╔═══════════════════╗")
@@ -169,13 +148,28 @@ class State:
         # print("║                   ║")
         # print("╚═══════════════════╝")
 
+        board = [[BLANK for _ in range(5)] for _ in range(7)]
+        all_pieces = list(self.state[Color.WHITE].values()) + list(
+            self.state[Color.BLACK].values()
+        )
+        for x in range(WIDTH):
+            for y in range(HEIGHT):
+                pieces_at_pos = list(
+                    filter(lambda piece: piece.x == x and piece.y == y, all_pieces)
+                )
+                if len(pieces_at_pos) == 0:
+                    continue
+                highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
+                board[y][x] = (
+                    highest_piece.color.ansi + highest_piece.icon + RESET_ANSI_CODE
+                )
         print("╔═══════════════════╗")
         print("║                   ║")
         print("╠═══╤═══╤═══╤═══╤═══╣")
-        for row in self.board[-1:0:-1]:
+        for row in board[-1:0:-1]:
             print("║ " + " │ ".join(row) + " ║")
             print("╟───┼───┼───┼───┼───╢")
-        print("║ " + " │ ".join(self.board[0]) + " ║")
+        print("║ " + " │ ".join(board[0]) + " ║")
         print("╠═══╧═══╧═══╧═══╧═══╣")
         print("║                   ║")
         print("╚═══════════════════╝")

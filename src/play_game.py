@@ -31,7 +31,6 @@ def play_game(
         # Draw the board state
         if sleep_time is not None:
             time.sleep(sleep_time)
-        game.update_board()
         if draw_over:
             print("\033[2J\033[H")  # clear screen, return to terminal position 0,0
         game.draw_board()
