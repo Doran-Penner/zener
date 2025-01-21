@@ -1,46 +1,24 @@
-from core import State
-from pprint import pp
+#!/usr/bin/env python3
 
-game = State()
+from move_getters import get_from_human
+from play_game import play_game
 
-response, extra_info = ("filler", "")
 
-while response not in ["win_white", "win_black", "already_over"]:
-    game.update_board()
-    player_turn, required_move = game.get_next_move()
-    if required_move is None:
-        required_move = "any"
-    else:
-        required_move = "their " + required_move
-    print(f"It is {player_turn}'s move, who must move {required_move} piece next.")
-
-    print("The board state is:")
-    pp(game.get_full_board())
-    game.draw_board()
-
-    print("Valid moves are:")
-    pp(game.get_valid_moves())
-
-    print("Input your move request.")
-    in_player = input('player ("black" or "white"): ')
-    in_shape = input('shape (e.g. "wave"): ')
-    in_x = input("x (e.g. 2): ")
-    in_y = input("y (e.g. 1): ")
-
-    try:
-        full_request = (in_player, in_shape, int(in_x), int(in_y))
-    except ValueError:
-        print('ERROR: Invalid input type (e.g. "wave" for x)')
-    print(f"Your move: {full_request}")
-    response, extra_info = game.try_move(full_request)
-
-    print()
-    print(f"{response}: {extra_info}")
+def end_of_turn():
     end_input = input("[Press any key to continue]")
     # sneaky debug console
     if end_input == "debug":
         breakpoint()
     print()
 
-print("Game is over!")
-print(f"Winner: {game.get_who_won()}")
+
+winner = play_game(
+    get_white_move=get_from_human,
+    get_black_move=get_from_human,
+    verbose=True,
+    sleep_time=0.25,
+    draw_over=True,
+    end_of_turn_hook=end_of_turn,
+)
+
+print(f"Game is over! Winner: {winner}")

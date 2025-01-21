@@ -1,82 +1,83 @@
 from copy import deepcopy
 from functools import reduce
 from itertools import chain
-
-"""
-We store state by player, then piece, then position & other data.
-The piece is an object, everything else is a dict.
-Here's an example of our database schema:
-{
-    "white": {
-        "circle": Piece("circle", 0, 0, 0),
-        "plus": Piece("plus", 1, 0, 0),
-        ...
-    },
-    "black": ...,
-}
-(0, 0) is the lower left corner from white's perspective;
-x values should be in [0, 4] and y values should be in [0, 6] (unless winning).
-
-To get information about the game, use `get_full_board` to get the positions
-of every piece on the board (as specified above), and `get_valid_moves`
-to get all valid next moves. The move schema for a move to position (x, y) is
-(player, shape, x, y), just a tuple of all the necessary information.
-
-The way to make moves is with the `try_move` operation. The input schema is the
-same as the above move schema, so if a strategy always chooses from the list of
-`get_valid_moves` then it will always give an valid move request.
-This gives a response as (response, extra_info).
-`response` will always be one of
-["move_failure", "move_success", "win_white", "win_black", "already_over"];
-`extra_info` will be any extra information for human consumption.
-Note that the turn tracker will silently move onto a player's second move if they
-cannot make their first move, and if a player is unable to move at all then the
-game will end without asking for input from the losing player - it will just
-send a victory response to the last caller and then lock up.
-
-Once the game is over, the core will lock up and not accept any more `try_move`s
-(though it will still give information with `get` methods). At any time after
-game end the `get_who_won()` method wll return the winner of the game, either
-"black" or "white" (and that information will also be given on the winning move).
-"""
-
-"""
-Stuff they need to know!
-{
-    "board": <output of get_board_json>,
-    "player": <what player they're playing as>,
-    "valid": <output of FUTURE valid_moves_json>,
-    "responding": <whether they're playing their "reaction" move (1st) or not (2nd)>,
-    "prev": <piece or null.
-                  If above is false, it's the one piece they can't use (if any);
-                  otherwise it's the piece they have to move next.
-                  It's messy, but it is what it is.>,
-}
-"""
-
-# I think the "programmatic API" should give functions the output of
-# `get_next_move`, get_full_board`, and `get_valid_moves`
-# and expect a return in the move schema
-# the only parts that the external world should interface with are
-# the get_* and try_move methods (and init); everything else is "pls don't touch"
-# NOTE could change all the "will be" language to "is" once it's all settled
+from enum import StrEnum, auto
+from typing import Self
 
 
-SHAPES = ["circle", "plus", "wave", "square", "star"]
-ICONS = ["o", "+", "~", "▣", "*"]
-BLANK = " "
 WIDTH = 5
 HEIGHT = 7
-WHITE_ANSI_CODE = "\033[0;31m"
-BLACK_ANSI_CODE = "\033[0;34m"
 RESET_ANSI_CODE = "\033[0m"
 
-BLANK_BOARD = [[BLANK for _ in range(5)] for _ in range(7)]
+
+class Shape(StrEnum):
+    CIRCLE = auto()
+    PLUS = auto()
+    WAVE = auto()
+    SQUARE = auto()
+    STAR = auto()
+
+    @property
+    def icon(self):
+        match self:
+            case Shape.CIRCLE:
+                return "o"
+            case Shape.PLUS:
+                return "+"
+            case Shape.WAVE:
+                return "~"
+            case Shape.SQUARE:
+                return "▣"
+            case Shape.STAR:
+                return "*"
+
+
+class Color(StrEnum):
+    WHITE = auto()
+    BLACK = auto()
+
+    def other(self) -> Self:
+        return Color.BLACK if self == Color.WHITE else Color.WHITE
+
+    @property
+    def ansi(self) -> str:
+        return f"\033[0;{31 if self == Color.WHITE else 34}m"
+
+
+class MoveResult(StrEnum):
+    MOVE_FAILURE = "move_failure"
+    MOVE_SUCCESS = "move_success"
+    WIN_WHITE = "win_white"
+    WIN_BLACK = "win_black"
+    ALREADY_OVER = "already_over"
+
+    @classmethod
+    def win_for_player(cls, player: Color) -> Self:
+        return cls(f"win_{player.value}")
+
+
+class Move:
+    def __init__(self, player: Color, shape: Shape, x: int, y: int):
+        self.player = player
+        self.shape = shape
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Move)
+            and self.player == other.player
+            and self.shape == other.shape
+            and self.x == other.x
+            and self.y == other.y
+        )
+
+    def __repr__(self):
+        return f"<moving the {self.player.value} {self.shape.value} to ({self.x}, {self.y})>"
 
 
 class Piece:
-    def __init__(self, shape, icon, x_pos, y_pos, height, color):
-        assert shape in SHAPES, f"Invalid shape name: {shape}"
+    def __init__(self, shape: Shape, x_pos: int, y_pos: int, height: int, color: Color):
         self.x = x_pos
         self.y = y_pos
         self.shape = shape
@@ -84,39 +85,36 @@ class Piece:
         # think of an empty square as having height 0
         self.height = height
 
-        self.icon = icon
-        # Added icon for graphical purpose
-
         self.color = color
 
     def __repr__(self):
-        return f"<{self.color} {self.shape} at ({self.x}, {self.y}) with height {self.height}>"
+        return f"<{self.color.value} {self.shape.value} at ({self.x}, {self.y}) with height {self.height}>"
+
+    @property
+    def icon(self):
+        return self.shape.icon
 
 
 class State:
     def __init__(self):
         # initialize to starting board
         white_pieces = {
-            shape: Piece(shape, ICONS[i], i, 0, 1, "white")
-            for (i, shape) in enumerate(SHAPES)
+            shape: Piece(shape, i, 0, 1, Color.WHITE) for (i, shape) in enumerate(Shape)
         }
         black_pieces = {
-            shape: Piece(shape, ICONS[i], (WIDTH - 1) - i, HEIGHT - 1, 1, "black")
-            for (i, shape) in enumerate(SHAPES)
+            shape: Piece(shape, (WIDTH - 1) - i, HEIGHT - 1, 1, Color.BLACK)
+            for (i, shape) in enumerate(Shape)
         }
-        self.state = {"white": white_pieces, "black": black_pieces}
+        self.state = {Color.WHITE: white_pieces, Color.BLACK: black_pieces}
         # specifies next valid move; first element is who goes next,
         # second is what piece they need to move as a string (or None)
-        self.next_move = ("white", None)
+        self.next_move = (Color.WHITE, None)
         self.prev_piece = None  # so we can't double-move
         self.winner = None
-        # small convenience function
-        self.other_team = lambda color: "black" if color == "white" else "white"
-        # old logger, we use stdout in new api
+        # not currently used but it's nice to have when needed
         self.logged_moves = []
-        self.board = deepcopy(BLANK_BOARD)
 
-    def get_next_move_new(self):
+    def get_next_move_new(self) -> tuple[Color, bool, Piece | None]:
         player, req_piece = self.next_move
         if req_piece is None:
             responding = False
@@ -126,30 +124,7 @@ class State:
             prev = self.prev_piece
         return player, responding, prev
 
-    def update_board(self):
-        self.board = deepcopy(BLANK_BOARD)
-        all_pieces = list(self.state["white"].values()) + list(
-            self.state["black"].values()
-        )
-        for x in range(WIDTH):
-            for y in range(HEIGHT):
-                pieces_at_pos = list(
-                    filter(lambda piece: piece.x == x and piece.y == y, all_pieces)
-                )
-                if len(pieces_at_pos) == 0:
-                    continue
-                highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
-                self.board[y][x] = (
-                    (
-                        WHITE_ANSI_CODE
-                        if highest_piece.color == "white"
-                        else BLACK_ANSI_CODE
-                    )
-                    + highest_piece.icon
-                    + RESET_ANSI_CODE
-                )
-
-    def draw_board(self):
+    def draw_board(self) -> None:
         # print("╔═══════════════════╗")
         # print("║                   ║")
         # print("╠═══╤═══╤═══╤═══╤═══╣")
@@ -165,47 +140,47 @@ class State:
         # print("╟───┼───┼───┼───┼───╢")
         # print("║ S │ S │ S │ S │ S ║")
         # print("╟───┼───┼───┼───┼───╢")
-        # print("║ S │ S │ S │ S │   ║")
+        # print("║ S │ S │ S │ S │ S ║")
         # print("╠═══╧═══╧═══╧═══╧═══╣")
         # print("║                   ║")
         # print("╚═══════════════════╝")
 
+        board = [[" " for _ in range(5)] for _ in range(7)]
+        all_pieces = list(self.state[Color.WHITE].values()) + list(
+            self.state[Color.BLACK].values()
+        )
+        for x in range(WIDTH):
+            for y in range(HEIGHT):
+                pieces_at_pos = list(
+                    filter(lambda piece: piece.x == x and piece.y == y, all_pieces)
+                )
+                if len(pieces_at_pos) == 0:
+                    continue
+                highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
+                board[y][x] = (
+                    highest_piece.color.ansi + highest_piece.icon + RESET_ANSI_CODE
+                )
         print("╔═══════════════════╗")
         print("║                   ║")
         print("╠═══╤═══╤═══╤═══╤═══╣")
-        for row in self.board[-1:0:-1]:
+        for row in board[-1:0:-1]:
             print("║ " + " │ ".join(row) + " ║")
             print("╟───┼───┼───┼───┼───╢")
-        print("║ " + " │ ".join(self.board[0]) + " ║")
+        print("║ " + " │ ".join(board[0]) + " ║")
         print("╠═══╧═══╧═══╧═══╧═══╣")
         print("║                   ║")
         print("╚═══════════════════╝")
 
-    def get_who_won(self):
+    def get_who_won(self) -> Color | None:
         return self.winner
 
-    def get_next_move(self):
+    def get_next_move(self) -> tuple[Color, Piece | None]:
         return self.next_move
 
-    def get_full_board(self):
+    def get_full_board(self) -> dict[Color, dict[Shape, Piece]]:
         return deepcopy(self.state)  # copy so they can't modify it
 
-    def get_board_json(self):
-        # do a bunch of dict mapping to convert the internal Piece
-        # representations into normal json that other programs can read
-        return {
-            color: {
-                shape: {
-                    "x": piece_obj.x,
-                    "y": piece_obj.y,
-                    "height": piece_obj.height,
-                }
-                for (shape, piece_obj) in colored_pieces.items()
-            }
-            for (color, colored_pieces) in self.state.items()
-        }
-
-    def get_valid_moves(self):
+    def get_valid_moves(self) -> list[Move]:
         # return list of valid moves, taking into account self.next_move
         player, piece_to_move = self.next_move
         colored_pieces = self.state[player]
@@ -239,12 +214,12 @@ class State:
             # now we can move, so find all in-bounds moves and extend ret with them
             x_range = range(5)
             # have to only let players move off the board on the other side
-            range_offset = 0 if player == "white" else -1
+            range_offset = 0 if player == Color.WHITE else -1
             y_range = range(0 + range_offset, 8 + range_offset)
             # we do this cursed thing because we want to filter AFTER mapping,
             # which normal python comprehensions don't do
             legal_moves = (
-                (player, moving_piece.shape, final_x, final_y)
+                Move(player, moving_piece.shape, final_x, final_y)
                 for (dir_x, dir_y) in [(-1, 0), (1, 0), (0, -1), (0, 1)]
                 if (final_x := moving_piece.x + dir_x) in x_range
                 and (final_y := moving_piece.y + dir_y) in y_range
@@ -252,9 +227,9 @@ class State:
             ret.extend(legal_moves)
         return ret
 
-    def get_player_cant_move(self):
+    def get_player_cant_move(self) -> Color | None:
         # horrendous and cursed, avert ye eyes
-        for player in ["white", "black"]:
+        for player in Color:
             old_next = self.next_move
             old_prev = self.prev_piece
             self.next_move = (player, None)
@@ -265,25 +240,20 @@ class State:
             self.prev_piece = old_prev
         return None
 
-    def get_moves_json(self):
-        # quickndirty wrapper of above func for new json-oriented api
-        lst = self.get_valid_moves()
-        ret = {shape: [] for shape in SHAPES}
-        for _, shape, x, y in lst:
-            ret[shape].append({"x": x, "y": y})
-        return ret
-
-    def _try_move(self, move):
+    def _try_move(self, move: Move) -> tuple[MoveResult, str]:
         if self.winner is not None:
             return (
-                "already_over",
+                MoveResult.ALREADY_OVER,
                 f"Game has already finished! Team {self.winner} won",
             )
 
         if move not in self.get_valid_moves():
-            return ("move_failure", "not a valid move!")
+            return (MoveResult.MOVE_FAILURE, "not a valid move!")
 
-        player, shape, x, y = move
+        player = move.player
+        shape = move.shape
+        x = move.x
+        y = move.y
         piece = self.state[player][shape]
         piece.x = x
         piece.y = y
@@ -301,7 +271,7 @@ class State:
             # sideways) because we only allow valid moves to get this far
             self.winner = player
             return (
-                f"win_{self.winner}",
+                MoveResult.win_for_player(self.winner),
                 f"team {self.winner} has won by moving a piece off the board!",
             )
 
@@ -309,16 +279,16 @@ class State:
         self.prev_piece = shape
         if self.next_move[1] is None:
             # we just played free, now they respond
-            self.next_move = (self.other_team(player), shape)
+            self.next_move = (player.other(), shape)
         else:
             # now we get our free move
             self.next_move = (self.next_move[0], None)
 
         # check if someone loses by not moving
         if (loser := self.get_player_cant_move()) is not None:
-            self.winner = self.other_team(loser)
+            self.winner = loser.other()
             return (
-                f"win_{self.winner}",
+                MoveResult.win_for_player(self.winner),
                 f"Team {self.winner} has won by blocking the other team from moving!",
             )
 
@@ -329,13 +299,13 @@ class State:
                 self.next_move = (self.next_move[0], None)
             else:
                 print(f"LOG: skipping free move (and response) of {self.next_move[0]}")
-                self.next_move = (self.other_team(self.next_move[0]), None)
+                self.next_move = (self.next_move[0].other(), None)
 
         # if nothing else triggers, we return boring success
-        return ("move_success", "")
+        return (MoveResult.MOVE_SUCCESS, "")
 
     # simple logging wrapper
-    def try_move(self, move):
+    def try_move(self, move: Move) -> tuple[MoveResult, str]:
         out = self._try_move(move)
         self.logged_moves.append((move, out))
         return out
