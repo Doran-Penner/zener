@@ -21,13 +21,12 @@ def f(
     pp(valid)
 
     print("Input your move request.")
-    in_player = input('player ("black" or "white"): ')
     in_shape = input('shape (e.g. "wave"): ')
     in_x = input("x (e.g. 2): ")
     in_y = input("y (e.g. 1): ")
 
     try:
-        full_request = Move(Color(in_player), Shape(in_shape), int(in_x), int(in_y))
+        full_request = Move(player, Shape(in_shape), int(in_x), int(in_y))
     except ValueError:
         print('ERROR: Invalid input type (e.g. "wave" for x)')
     print(f"Your move: {full_request}")
