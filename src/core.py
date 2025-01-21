@@ -4,65 +4,6 @@ from itertools import chain
 from enum import StrEnum, auto
 from typing import Self
 
-"""
-We store state by player, then piece, then position & other data.
-The piece is an object, everything else is a dict.
-Here's an example of our database schema:
-{
-    "white": {
-        "circle": Piece("circle", 0, 0, 0),
-        "plus": Piece("plus", 1, 0, 0),
-        ...
-    },
-    "black": ...,
-}
-(0, 0) is the lower left corner from white's perspective;
-x values should be in [0, 4] and y values should be in [0, 6] (unless winning).
-
-To get information about the game, use `get_full_board` to get the positions
-of every piece on the board (as specified above), and `get_valid_moves`
-to get all valid next moves. The move schema for a move to position (x, y) is
-(player, shape, x, y), just a tuple of all the necessary information.
-
-The way to make moves is with the `try_move` operation. The input schema is the
-same as the above move schema, so if a strategy always chooses from the list of
-`get_valid_moves` then it will always give an valid move request.
-This gives a response as (response, extra_info).
-`response` will always be one of
-["move_failure", "move_success", "win_white", "win_black", "already_over"];
-`extra_info` will be any extra information for human consumption.
-Note that the turn tracker will silently move onto a player's second move if they
-cannot make their first move, and if a player is unable to move at all then the
-game will end without asking for input from the losing player - it will just
-send a victory response to the last caller and then lock up.
-
-Once the game is over, the core will lock up and not accept any more `try_move`s
-(though it will still give information with `get` methods). At any time after
-game end the `get_who_won()` method wll return the winner of the game, either
-"black" or "white" (and that information will also be given on the winning move).
-"""
-
-"""
-Stuff they need to know!
-{
-    "board": <output of get_board_json>,
-    "player": <what player they're playing as>,
-    "valid": <output of FUTURE valid_moves_json>,
-    "responding": <whether they're playing their "reaction" move (1st) or not (2nd)>,
-    "prev": <piece or null.
-                  If above is false, it's the one piece they can't use (if any);
-                  otherwise it's the piece they have to move next.
-                  It's messy, but it is what it is.>,
-}
-"""
-
-# I think the "programmatic API" should give functions the output of
-# `get_next_move`, get_full_board`, and `get_valid_moves`
-# and expect a return in the move schema
-# the only parts that the external world should interface with are
-# the get_* and try_move methods (and init); everything else is "pls don't touch"
-# NOTE could change all the "will be" language to "is" once it's all settled
-
 
 SHAPES = ["circle", "plus", "wave", "square", "star"]
 ICONS = ["o", "+", "~", "▣", "*"]
@@ -176,8 +117,7 @@ class State:
         self.next_move = (Color.WHITE, None)
         self.prev_piece = None  # so we can't double-move
         self.winner = None
-        # small convenience function
-        # old logger, we use stdout in new api
+        # not currently used but it's nice to have when needed
         self.logged_moves = []
         self.board = deepcopy(BLANK_BOARD)
 
@@ -224,7 +164,7 @@ class State:
         # print("╟───┼───┼───┼───┼───╢")
         # print("║ S │ S │ S │ S │ S ║")
         # print("╟───┼───┼───┼───┼───╢")
-        # print("║ S │ S │ S │ S │   ║")
+        # print("║ S │ S │ S │ S │ S ║")
         # print("╠═══╧═══╧═══╧═══╧═══╣")
         # print("║                   ║")
         # print("╚═══════════════════╝")
