@@ -4,7 +4,17 @@ from collections.abc import Callable
 from core import MoveResult, Color, Move, Piece
 from typing import Any
 
-type MoveGetter = Callable[[Any, list[Move], bool, Piece | None, Piece | None], Move]
+type MoveGetter = Callable[
+    [
+        Color,
+        dict[Color, dict[Shape, Piece]],
+        list[Move],
+        bool,
+        Piece | None,
+        Piece | None,
+    ],
+    Move,
+]
 
 
 def play_game(
@@ -43,9 +53,9 @@ def play_game(
 
         # Ask the player for their move
         if player == Color.WHITE:
-            move = get_white_move(board, valid, responding, prev, required_move)
+            move = get_white_move(player, board, valid, responding, prev, required_move)
         else:
-            move = get_black_move(board, valid, responding, prev, required_move)
+            move = get_black_move(player, board, valid, responding, prev, required_move)
 
         # Apply it to the game
         response, extra_info = game.try_move(move)
