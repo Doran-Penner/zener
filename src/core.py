@@ -128,12 +128,9 @@ class State:
         all_pieces = list(self.state[Color.WHITE].values()) + list(
             self.state[Color.BLACK].values()
         )
-        print("╔═══════════════════╗")
-        print("║                   ║")
-        print("╠═══╤═══╤═══╤═══╤═══╣")
         # marginally faster than reversed(range(WIDTH)) even though Range.__reversed__ is special-cased in C
-        # plus we want to stop early
-        for y in range(HEIGHT - 1, 0, -1):
+        lines = []
+        for y in range(HEIGHT - 1, -1, -1):
             row = ["  " for _ in range(5)]
             for x in range(WIDTH):
                 pieces_at_pos = list(
@@ -154,31 +151,17 @@ class State:
                         else " "
                     )
                 )
-            print("║ " + "│ ".join(row) + "║")
-            print("╟───┼───┼───┼───┼───╢")
-        y = 0
-        row = ["  " for _ in range(5)]
-        for x in range(WIDTH):
-            pieces_at_pos = list(
-                filter(lambda piece: piece.x == x and piece.y == y, all_pieces)
-            )
-            if len(pieces_at_pos) == 0:
-                continue
-            highest_piece = max(pieces_at_pos, key=lambda piece: piece.height)
-            row[x] = (
-                highest_piece.color.ansi
-                + highest_piece.icon
-                + RESET_ANSI_CODE
-                + (
-                    f"\\u208{highest_piece.height}".encode().decode("unicode-escape")
-                    if highest_piece.height > 1
-                    else " "
-                )
-            )
-        print("║ " + "│ ".join(row) + "║")
-        print("╠═══╧═══╧═══╧═══╧═══╣")
-        print("║                   ║")
-        print("╚═══════════════════╝")
+            lines.append("║ " + "│ ".join(row) + "║\n")
+
+        board_str = ""
+        board_str += "╔═══════════════════╗\n"
+        board_str += "║                   ║\n"
+        board_str += "╠═══╤═══╤═══╤═══╤═══╣\n"
+        board_str += "╟───┼───┼───┼───┼───╢\n".join(lines)
+        board_str += "╠═══╧═══╧═══╧═══╧═══╣\n"
+        board_str += "║                   ║\n"
+        board_str += "╚═══════════════════╝"
+        print(board_str)
 
     def get_who_won(self) -> Color | None:
         return self.winner
