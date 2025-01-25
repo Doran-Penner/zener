@@ -144,11 +144,7 @@ class State:
                     + highest_piece.icon
                     + RESET_ANSI_CODE
                     + (
-                        f"\\u208{highest_piece.height}".encode().decode(
-                            "unicode-escape"
-                        )
-                        if highest_piece.height > 1
-                        else " "
+                        chr(0x2080 + highest_piece.height) if highest_piece.height > 1 else " "
                     )
                 )
             lines.append("║ " + "│ ".join(row) + "║\n")
