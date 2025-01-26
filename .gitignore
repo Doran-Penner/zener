@@ -4,3 +4,4 @@ venv/
 .direnv/
 .ruff-cache/
 __pycache__/
+bots/
