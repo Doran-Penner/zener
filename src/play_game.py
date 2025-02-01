@@ -22,6 +22,7 @@ def play_game(
     verbose: bool = False,
     sleep_time: float | None = None,
     draw_over: bool = True,
+    above_board_text: str | None = None,
     end_of_turn_hook: Callable[[], None] | None = None,
 ) -> Color:
     def vp(*args, **kwargs):
@@ -42,6 +43,8 @@ def play_game(
             time.sleep(sleep_time)
         if draw_over:
             print("\033[2J\033[H")  # clear screen, return to terminal position 0,0
+        if above_board_text is not None:
+            print(above_board_text)
         game.draw_board()
 
         # Get the board state
