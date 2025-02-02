@@ -42,7 +42,7 @@ def play_game(
         if sleep_time is not None:
             time.sleep(sleep_time)
         if draw_over:
-            print("\033[2J\033[H")  # clear screen, return to terminal position 0,0
+            print("\033[2J\033[H", end='')  # clear screen, return to terminal position 0,0
         if above_board_text is not None:
             print(above_board_text)
         game.draw_board()
