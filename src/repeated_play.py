@@ -15,20 +15,22 @@ if len(sys.argv) > 3:
     GAME_COUNT = int(sys.argv[3])
 
 print(f"Running {GAME_COUNT} games where {sys.argv[1]} is white and {sys.argv[2]} is black")
-for _ in range(GAME_COUNT):
+for i in range(GAME_COUNT):
     winner = play_game(
         get_white_move=get_from_bot(sys.argv[1]),
         get_black_move=get_from_bot(sys.argv[2]),
+        above_board_text=f"Game {i+1}/{GAME_COUNT} (white: {sys.argv[1]}; black: {sys.argv[2]})"
     )
     if winner == Color.WHITE:
         p1_white_wins += 1
     else:
         p2_black_wins += 1
 print(f"Running {GAME_COUNT} games where {sys.argv[2]} is white and {sys.argv[1]} is black")
-for _ in range(GAME_COUNT):
+for i in range(GAME_COUNT):
     winner = play_game(
         get_white_move=get_from_bot(sys.argv[2]),
         get_black_move=get_from_bot(sys.argv[1]),
+        above_board_text=f"Game {i+1}/{GAME_COUNT} (white: {sys.argv[2]}; black: {sys.argv[1]})"
     )
     if winner == Color.WHITE:
         p2_white_wins += 1
